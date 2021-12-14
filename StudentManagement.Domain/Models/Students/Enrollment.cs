@@ -9,9 +9,7 @@ public class Enrollment : Entity
     public Grade? Grade { get; protected set; }
 
     #pragma warning disable CS8618
-    protected Enrollment()
-    {
-    }
+    protected Enrollment() { }
 
     public Enrollment(Student student, Course course, Grade? grade)
         : this()

@@ -4,7 +4,7 @@ using StudentManagement.Domain.Utils;
 namespace StudentManagement.Domain.Models.Students;
 
 public class Student : 
-    Entity<Guid>, 
+    Entity, 
     IAggregateRoot
 {
     public Name Name { get; set; }
@@ -17,6 +17,8 @@ public class Student :
     private readonly List<Disenrollment> _disenrollments = new List<Disenrollment>();
     public IReadOnlyList<Disenrollment> Disenrollments => _disenrollments.ToList();
 
+    #pragma warning disable CS8618
+    protected Student() { }
 
     public Student(Name name, Email email, Course course)
     {

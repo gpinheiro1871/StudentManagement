@@ -7,6 +7,9 @@ public class Name : ValueObject
     public string First { get; }
     public string Last { get; }
 
+    #pragma warning disable CS8618 
+    protected Name() { }
+
     private Name(string firstName, string lastName)
     {
         First = firstName;

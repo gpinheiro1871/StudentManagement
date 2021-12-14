@@ -14,9 +14,7 @@ public class Course : Entity
 
 
     #pragma warning disable CS8618
-    protected Course()
-    {
-    }
+    protected Course() { }
 
     private Course(long id, string name)
         : base(id)

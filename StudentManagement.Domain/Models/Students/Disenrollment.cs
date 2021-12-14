@@ -1,15 +1,16 @@
-﻿namespace StudentManagement.Domain.Models.Students
+﻿using CSharpFunctionalExtensions;
+
+namespace StudentManagement.Domain.Models.Students
 {
-    public class Disenrollment
+    public class Disenrollment : Entity
     {
         public virtual Student Student { get; private set; }
         public virtual Course Course { get; private set; }
         public virtual DateTime DateTime { get; private set; }
         public virtual string Comment { get; private set; }
 
-        private Disenrollment()
-        {
-        }
+        #pragma warning disable CS8618
+        protected Disenrollment() { }
 
         public Disenrollment(Student student, Course course, string comment)
             : this()
