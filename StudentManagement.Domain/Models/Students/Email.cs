@@ -28,6 +28,11 @@ namespace StudentManagement.Domain.Models.Students
             return Result.Success(new Email(email));
         }
 
+        public override string ToString()
+        {
+            return Value;
+        }
+
         protected override IEnumerable<object> GetEqualityComponents()
         {
             yield return Value;

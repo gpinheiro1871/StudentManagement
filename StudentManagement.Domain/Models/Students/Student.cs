@@ -7,15 +7,24 @@ public class Student :
     Entity, 
     IAggregateRoot
 {
-    public Name Name { get; set; }
-    public Email Email { get; set; }
-
-    private readonly List<Enrollment> _enrollments = new List<Enrollment>();
-    public IReadOnlyList<Enrollment> Enrollments => _enrollments.ToList();
+    public virtual Name Name { get; protected set; }
 
 
-    private readonly List<Disenrollment> _disenrollments = new List<Disenrollment>();
-    public IReadOnlyList<Disenrollment> Disenrollments => _disenrollments.ToList();
+    private string _email;
+    public virtual Email Email
+    {
+        get => Email.Create(_email).Value;
+        protected set => _email = value.Value;
+    }
+
+    private readonly IList<Enrollment> _enrollments = new List<Enrollment>();
+    public virtual IReadOnlyList<Enrollment> Enrollments => _enrollments.ToList();
+
+    public virtual Enrollment FirstEnrollment => GetEnrollment(0);
+    public virtual Enrollment? SecondEnrollment => GetEnrollment(1);
+
+    private readonly IList<Disenrollment> _disenrollments = new List<Disenrollment>();
+    public virtual IReadOnlyList<Disenrollment> Disenrollments => _disenrollments.ToList();
 
     #pragma warning disable CS8618
     protected Student() { }
@@ -36,7 +45,7 @@ public class Student :
         Enroll(course);
     }
 
-    public void Enroll(Course course)
+    public virtual void Enroll(Course course)
     {
         if (_enrollments.Count == 2)
         {
@@ -51,22 +60,58 @@ public class Student :
         _enrollments.Add(new Enrollment(this, course, null));
     }
 
-    public void Grade(Course course, Grade grade)
+    public virtual void Grade(Course course, Grade grade)
     {
         var enrollment = _enrollments.Single(x => x.Course == course);
 
         enrollment.SetGrade(grade);
     }
 
-    public void Disenroll(Course course, string comment)
+    public virtual void Disenroll(Course course, string comment)
     {
-        Enrollment enrollment = _enrollments.Single(y => y.Course == course);
+        Enrollment? enrollment = _enrollments.FirstOrDefault(y => y.Course == course);
+        if (enrollment is null)
+        {
+            return;
+        }
+        _enrollments.Remove(enrollment);
 
         Disenrollment disenrollment = new(this, course, comment);
 
-        _enrollments.Remove(enrollment);
-
         _disenrollments.Add(disenrollment);
+    }
+
+    private Enrollment GetEnrollment(int index)
+    {
+        if (_enrollments.Count > index)
+            return _enrollments[index];
+
+        return null;
+    }
+
+    public virtual void EditPersonalInfo(Name name, Email email)
+    {
+        Name = name;
+        Email = email;
+    }
+
+    public virtual void Transfer(int enrollmentNumber, Course course, Grade? grade)
+    {
+        if (enrollmentNumber > 2 || enrollmentNumber < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(enrollmentNumber));
+        }
+
+        Enrollment enrollment = _enrollments.ElementAt(enrollmentNumber-1);
+
+        if (enrollment is null)
+        {
+            return;
+        }
+
+        enrollment.Update(course, grade);
+
+        return;
     }
 }
                

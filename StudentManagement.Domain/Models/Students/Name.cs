@@ -34,6 +34,11 @@ public class Name : ValueObject
         return Result.Success(new Name(firstName, lastName));
     }
 
+    public override string ToString()
+    {
+        return $"{First} {Last}";
+    }
+
     protected override IEnumerable<object> GetEqualityComponents()
     {
         yield return First;

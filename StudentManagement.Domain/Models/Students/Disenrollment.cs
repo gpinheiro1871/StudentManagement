@@ -4,10 +4,10 @@ namespace StudentManagement.Domain.Models.Students
 {
     public class Disenrollment : Entity
     {
-        public virtual Student Student { get; private set; }
-        public virtual Course Course { get; private set; }
-        public virtual DateTime DateTime { get; private set; }
-        public virtual string Comment { get; private set; }
+        public virtual Student Student { get; protected set; }
+        public virtual Course Course { get; protected set; }
+        public virtual DateTime DateTime { get; protected set; }
+        public virtual string Comment { get; protected set; }
 
         #pragma warning disable CS8618
         protected Disenrollment() { }

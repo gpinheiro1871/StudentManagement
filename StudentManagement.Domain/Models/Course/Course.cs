@@ -10,7 +10,7 @@ public class Course : Entity
 
     public static readonly Course[] AllCourses = { Calculus, Chemistry, English };
 
-    public string Name { get; }
+    public virtual string Name { get; }
 
 
     #pragma warning disable CS8618

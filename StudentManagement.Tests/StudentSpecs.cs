@@ -98,4 +98,21 @@ public class StudentSpecs
         student.Disenrollments.Should().HaveCount(1);
         student.Disenrollments[0].Comment.Should().Be(comment);
     }
+
+    [Fact]
+    public void Can_transfer_student()
+    {
+        //ARRANGE
+        Student student = Builders.buildStudent();
+        Course course = Course.FromId(2L);
+        Grade grade = Grade.A;
+
+        //ACT
+        student.Transfer(1, course, grade);
+
+        //ASSERT
+        student.FirstEnrollment.Course.Should().Be(course);
+        student.FirstEnrollment.Grade.Should().Be(grade);
+
+    }
 }

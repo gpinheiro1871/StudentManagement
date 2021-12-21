@@ -4,9 +4,9 @@ namespace StudentManagement.Domain.Models.Students;
 
 public class Enrollment : Entity
 {
-    public Student Student { get; protected set; }
-    public Course Course { get; protected set; }
-    public Grade? Grade { get; protected set; }
+    public virtual Student Student { get; protected set; }
+    public virtual Course Course { get; protected set; }
+    public virtual Grade? Grade { get; protected set; }
 
     #pragma warning disable CS8618
     protected Enrollment() { }
@@ -29,8 +29,14 @@ public class Enrollment : Entity
         Grade = grade;
     }
 
-    public void SetGrade(Grade grade)
+    protected internal virtual void SetGrade(Grade grade)
     {
+        Grade = grade;
+    }
+
+    protected internal virtual void Update(Course course, Grade? grade)
+    {
+        Course = course;
         Grade = grade;
     }
 }
