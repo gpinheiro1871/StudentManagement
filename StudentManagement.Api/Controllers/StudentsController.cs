@@ -73,24 +73,21 @@ public sealed class StudentsController : ControllerBase
     // Register
     [HttpPost]
     [ProducesResponseType(typeof(StudentDto), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Register(NewStudentDto dto)
+    public async Task<IActionResult> Register(RegisterRequest dto)
     {
         //find course
         Course? course = Course.FromId(dto.Enrollment.CourseId);
-
-        //create student
-        var nameResult = Name.Create(dto.FirstName, dto.LastName);
-
-        var emailResult = Email.Create(dto.Email);
-
-        if (nameResult.IsFailure 
-            || emailResult.IsFailure 
-            || course is null)
+        if (course is null)
         {
-            return BadRequest();
+            return BadRequest("Course not found.");
         }
 
-        Student student = new Student(nameResult.Value, emailResult.Value, course);
+        //create student
+        Name name = Name.Create(dto.FirstName, dto.LastName).Value;
+
+        Email email = Email.Create(dto.Email).Value;
+
+        Student student = new(name, email, course);
 
         await _studentRepository.SaveAsync(student);
 
@@ -123,7 +120,7 @@ public sealed class StudentsController : ControllerBase
     // EditPersonalInfo
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> EditPersonalInfo(long id, StudentEditPersonalInfoDto dto)
+    public async Task<IActionResult> EditPersonalInfo(long id, EditPersonalInfoRequest dto)
     {
         //Find student
         Student? student = await _studentRepository.GetByIdAsync(id);
@@ -153,7 +150,7 @@ public sealed class StudentsController : ControllerBase
     // Enroll
     [HttpPost("{id}/enrollments")]
     [ProducesResponseType(typeof(StudentDto), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Enroll(long id, StudentEnrollDto dto)
+    public async Task<IActionResult> Enroll(long id, EnrollRequest dto)
     {
         //find course
         Course? course = Course.FromId(dto.CourseId);
@@ -175,7 +172,7 @@ public sealed class StudentsController : ControllerBase
 
     // Grade
     [HttpPut("{id}/enrollments")]
-    public async Task<IActionResult> Grade(long id, StudentGradeDto dto)
+    public async Task<IActionResult> Grade(long id, GradeRequest dto)
     {
         //find course
         Course? course = Course.FromId(dto.CourseId);
@@ -197,7 +194,7 @@ public sealed class StudentsController : ControllerBase
 
     //Transfer
     [HttpPut("{id}/enrollments/{enrollmentNumber}")]
-    public async Task<IActionResult> Transfer(long id, int enrollmentNumber, StudentTransferDto dto)
+    public async Task<IActionResult> Transfer(long id, int enrollmentNumber, TransferRequest dto)
     {
         //find course
         Course? course = Course.FromId(dto.CourseId);
@@ -219,7 +216,7 @@ public sealed class StudentsController : ControllerBase
 
     // Disenroll
     [HttpDelete("{id}/enrollments")]
-    public async Task<IActionResult> Disenroll(long id, StudentDisenrollDto dto)
+    public async Task<IActionResult> Disenroll(long id, DisenrollRequest dto)
     {
         //find course
         Course? course = Course.FromId(dto.CourseId);

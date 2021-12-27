@@ -19,7 +19,7 @@ public sealed record StudentDto
     }
 }
 
-public sealed record NewStudentDto
+public sealed record RegisterRequest
 {
     public string FirstName { get; init; }
     public string LastName { get; init; }
@@ -32,31 +32,31 @@ public sealed record NewStudentDto
     }
 }
 
-public sealed record StudentEditPersonalInfoDto
+public sealed record EditPersonalInfoRequest
 {
     public string FirstName { get; init; }
     public string LastName { get; init; }
     public string Email { get; init; }
 }
 
-public sealed record StudentEnrollDto
+public sealed record EnrollRequest
 {
     public long CourseId { get; init; }
 }
 
-public sealed record StudentGradeDto
-{
-    public long CourseId { get; init; }
-    public Grade Grade { get; init; }
-}
-
-public sealed record StudentTransferDto
+public sealed record GradeRequest
 {
     public long CourseId { get; init; }
     public Grade Grade { get; init; }
 }
 
-public sealed record StudentDisenrollDto
+public sealed record TransferRequest
+{
+    public long CourseId { get; init; }
+    public Grade Grade { get; init; }
+}
+
+public sealed record DisenrollRequest
 {
     public long CourseId { get; init; }
     public string Comment { get; init; }
