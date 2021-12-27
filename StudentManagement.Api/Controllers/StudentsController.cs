@@ -1,13 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CSharpFunctionalExtensions;
+using Microsoft.AspNetCore.Mvc;
 using StudentManagement.Api.Dtos;
+using StudentManagement.Api.Utils;
 using StudentManagement.Domain.Models.Students;
+using StudentManagement.Domain.Utils;
 using StudentManagement.Infrastructure;
 
 namespace StudentManagement.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public sealed class StudentsController : ControllerBase
+public sealed class StudentsController : BaseController
 {
     private readonly UnitOfWork _unitOfWork;
     private readonly IStudentRepository _studentRepository;
@@ -32,6 +35,7 @@ public sealed class StudentsController : ControllerBase
 
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(StudentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Get(long id)
     {
         Student? student = await _studentRepository.QueryByIdAsync(id);
@@ -72,23 +76,26 @@ public sealed class StudentsController : ControllerBase
 
     // Register
     [HttpPost]
-    [ProducesResponseType(typeof(StudentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<StudentDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<StudentDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Register(NewStudentDto dto)
     {
-        //find course
         Course? course = Course.FromId(dto.Enrollment.CourseId);
 
-        //create student
-        var nameResult = Name.Create(dto.FirstName, dto.LastName);
+        DomainResult<Name> nameResult = Name.Create(dto.FirstName, dto.LastName);
 
-        var emailResult = Email.Create(dto.Email);
+        DomainResult<Email> emailResult = Email.Create(dto.Email);
 
-        if (nameResult.IsFailure 
-            || emailResult.IsFailure 
-            || course is null)
+        DomainResult<NewStudentDto> finalResult = 
+            DomainResult.Combine(dto, nameResult, emailResult);
+        
+        if (finalResult.IsFailure)
         {
-            return BadRequest();
+            return FromDomainActionResult(finalResult);
         }
+
+        //var name = nameResult.Value ?? throw new Exception();
+        //var email = emailResult.Value ?? throw new Exception();
 
         Student student = new Student(nameResult.Value, emailResult.Value, course);
 
@@ -96,7 +103,6 @@ public sealed class StudentsController : ControllerBase
 
         await _unitOfWork.CommitAsync();
 
-        //return dto
         return Ok(ConvertToDto(student));
     }
 
