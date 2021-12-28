@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using StudentManagement.Domain.Utils;
+using static StudentManagement.Domain.Utils.Error;
 
 namespace StudentManagement.Domain.Models.Students;
 
@@ -29,7 +30,13 @@ public class Student :
     #pragma warning disable CS8618
     protected Student() { }
 
-    public Student(Name name, Email email, Course course)
+    private Student(Name name, Email email, Course course)
+    {
+        Name = name;
+        Email = email;
+    }
+
+    internal static Student Create(Name name, Email email, Course course)
     {
         if (name is null)
         {
@@ -37,48 +44,62 @@ public class Student :
         }
         if (email is null)
         {
-            throw new ArgumentNullException(nameof(name));
+            throw new ArgumentNullException(nameof(email));
         }
 
-        Name = name;
-        Email = email;
-        Enroll(course);
+        Student student = new Student(name, email, course);
+
+        student.Enroll(course);
+
+        return student;
     }
 
-    public virtual void Enroll(Course course)
+    public virtual UnitResult<Error> Enroll(Course course)
     {
         if (_enrollments.Count == 2)
         {
-            throw new InvalidOperationException();
+            return Errors.Student.TooManyEnrollments();
         }
 
         if (_enrollments.Any(x => x.Course == course))
         {
-            throw new InvalidOperationException();
+            return Errors.Student.AlreadyEnrolled(course.Name);
         }
 
         _enrollments.Add(new Enrollment(this, course, null));
+
+        return UnitResult.Success<Error>();
     }
 
-    public virtual void Grade(Course course, Grade grade)
+    public virtual UnitResult<Error> Grade(Course course, Grade grade)
     {
-        var enrollment = _enrollments.Single(x => x.Course == course);
+        Enrollment? enrollment = _enrollments.FirstOrDefault(x => x.Course == course);
 
-        enrollment.SetGrade(grade);
-    }
-
-    public virtual void Disenroll(Course course, string comment)
-    {
-        Enrollment? enrollment = _enrollments.FirstOrDefault(y => y.Course == course);
         if (enrollment is null)
         {
-            return;
+            return Errors.Student.NotEnrolled(course.Name);
+        }
+
+        enrollment.SetGrade(grade);
+
+        return UnitResult.Success<Error>();
+    }
+
+    public virtual UnitResult<Error> Disenroll(Course course, string comment)
+    {
+        Enrollment? enrollment = _enrollments.FirstOrDefault(y => y.Course == course);
+        
+        if (enrollment is null)
+        {
+            return Errors.Student.NotEnrolled(course.Name);
         }
         _enrollments.Remove(enrollment);
 
         Disenrollment disenrollment = new(this, course, comment);
 
         _disenrollments.Add(disenrollment);
+
+        return UnitResult.Success<Error>();
     }
 
     private Enrollment GetEnrollment(int index)
@@ -89,29 +110,38 @@ public class Student :
         return null;
     }
 
-    public virtual void EditPersonalInfo(Name name, Email email)
+    protected internal virtual void EditPersonalInfo(Name name, Email email)
     {
+        if (name is null)
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+        if (email is null)
+        {
+            throw new ArgumentNullException(nameof(email));
+        }
+
         Name = name;
         Email = email;
     }
 
-    public virtual void Transfer(int enrollmentNumber, Course course, Grade? grade)
+    public virtual UnitResult<Error> Transfer(int enrollmentNumber, Course course, Grade? grade)
     {
         if (enrollmentNumber > 2 || enrollmentNumber < 1)
         {
-            throw new ArgumentOutOfRangeException(nameof(enrollmentNumber));
+            return Errors.Student.InvalidEnrollmentNumber();
         }
 
         Enrollment enrollment = _enrollments.ElementAt(enrollmentNumber-1);
 
         if (enrollment is null)
         {
-            return;
+            return Errors.Student.EnrollmentNumberNotFound(enrollmentNumber);
         }
 
         enrollment.Update(course, grade);
 
-        return;
+        return UnitResult.Success<Error>();
     }
 }
                

@@ -8,7 +8,7 @@ public sealed record StudentDto
     public string Name { get; init; }
     public string Email { get; init; }
 
-    public EnrollmentDto FirstEnrollment { get; init; }
+    public EnrollmentDto? FirstEnrollment { get; init; }
     public EnrollmentDto? SecondEnrollment { get; init; }
 
     public sealed record EnrollmentDto

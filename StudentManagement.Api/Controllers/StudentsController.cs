@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CSharpFunctionalExtensions;
+using Microsoft.AspNetCore.Mvc;
 using StudentManagement.Api.Dtos;
 using StudentManagement.Domain.Models.Students;
+using StudentManagement.Domain.Services;
+using StudentManagement.Domain.Utils;
 using StudentManagement.Infrastructure;
 
 namespace StudentManagement.Api.Controllers;
@@ -11,18 +14,20 @@ public sealed class StudentsController : ControllerBase
 {
     private readonly UnitOfWork _unitOfWork;
     private readonly IStudentRepository _studentRepository;
+    private readonly IStudentManager _studentManager;
 
-    public StudentsController(UnitOfWork unitOfWork, IStudentRepository studentRepository)
+    public StudentsController(UnitOfWork unitOfWork, 
+        IStudentRepository studentRepository, IStudentManager studentManager)
     {
         _unitOfWork = unitOfWork;
         _studentRepository = studentRepository;
+        _studentManager = studentManager;
     }
 
     [HttpGet]
     [ProducesResponseType(typeof(List<StudentDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
     {
-
         IReadOnlyCollection<Student> students = await _studentRepository.QueryAll();
 
         List <StudentDto> dtos = students.Select(x => ConvertToDto(x)).ToList();
@@ -46,6 +51,15 @@ public sealed class StudentsController : ControllerBase
 
     private StudentDto ConvertToDto(Student student)
     {
+        var firstEnrollment = student.FirstEnrollment is null
+            ? null
+            : new StudentDto.EnrollmentDto()
+            {
+                CourseId = student.FirstEnrollment.Course.Id,
+                CourseName = student.FirstEnrollment.Course.Name,
+                Grade = student.FirstEnrollment.Grade?.ToString()
+            };
+        
         var secondEnrollment = student.SecondEnrollment is null
             ? null
             : new StudentDto.EnrollmentDto()
@@ -60,12 +74,7 @@ public sealed class StudentsController : ControllerBase
             Id = student.Id,
             Name = student.Name.ToString(),
             Email = student.Email.ToString(),
-            FirstEnrollment = new StudentDto.EnrollmentDto()
-            {
-                CourseId = student.FirstEnrollment.Course.Id,
-                CourseName = student.FirstEnrollment.Course.Name,
-                Grade = student.FirstEnrollment.Grade?.ToString(),
-            },
+            FirstEnrollment = firstEnrollment,
             SecondEnrollment = secondEnrollment
         };
     }
@@ -87,7 +96,14 @@ public sealed class StudentsController : ControllerBase
 
         Email email = Email.Create(dto.Email).Value;
 
-        Student student = new(name, email, course);
+        var studentResult = await _studentManager.Create(name, email, course);
+
+        if (studentResult.IsFailure)
+        {
+            return Ok(studentResult.Error);
+        }
+
+        Student student = studentResult.Value;
 
         await _studentRepository.SaveAsync(student);
 
@@ -127,20 +143,19 @@ public sealed class StudentsController : ControllerBase
 
         if (student is null)
         {
-            return BadRequest();
+            return NotFound();
         }
 
-        var nameResult = Name.Create(dto.FirstName, dto.LastName);
+        Name name = Name.Create(dto.FirstName, dto.LastName).Value;
 
-        var emailResult = Email.Create(dto.Email);
+        Email email = Email.Create(dto.Email).Value;
 
-        if (nameResult.IsFailure
-            || emailResult.IsFailure)
+        UnitResult<Error> result = await _studentManager.EditPersonalInfo(student, name, email);
+
+        if (result.IsFailure)
         {
-            return BadRequest();
+            return BadRequest(result.Error);
         }
-
-        student.EditPersonalInfo(nameResult.Value, emailResult.Value);
 
         await _unitOfWork.CommitAsync();
 

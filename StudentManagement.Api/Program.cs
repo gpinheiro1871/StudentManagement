@@ -1,4 +1,5 @@
 using StudentManagement.Domain.Models.Students;
+using StudentManagement.Domain.Services;
 using StudentManagement.Infrastructure;
 using StudentManagement.Infrastructure.Repositories;
 using System.Text.Json.Serialization;
@@ -30,6 +31,7 @@ builder.Services.AddSwaggerGen(config =>
 builder.Services.AddSingleton(new SessionFactory(builder.Configuration.GetConnectionString("SchoolDb")));
 builder.Services.AddScoped<UnitOfWork>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
+builder.Services.AddScoped<IStudentManager, StudentManager>();
 
 var app = builder.Build();
 

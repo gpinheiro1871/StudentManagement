@@ -7,4 +7,5 @@ public interface IStudentRepository
     Task<Student?> GetByIdAsync(long id);
     Task SaveAsync(Student student);
     Task DeleteAsync(Student student);
+    Task<bool> EmailExists(Email email);
 }
