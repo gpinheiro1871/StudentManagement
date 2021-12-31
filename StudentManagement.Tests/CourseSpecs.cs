@@ -28,7 +28,7 @@ public class CourseSpecs
         Course expectedCourse = Course.Calculus;
 
         //ACT
-        Course course = Course.FromId(1L);
+        Course course = Course.FromId(1L).Value;
 
         //ASSERT
         course.Should().Be(expectedCourse);

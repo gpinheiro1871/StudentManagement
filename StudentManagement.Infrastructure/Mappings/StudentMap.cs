@@ -11,8 +11,8 @@ public class StudentMap : ClassMap<Student>
 
         Component(x => x.Name, x =>
         {
-            x.Map(y => y.First).Column("FirstName");
-            x.Map(y => y.Last).Column("LastName");
+            x.Map(y => y.FirstName).Column("FirstName");
+            x.Map(y => y.LastName).Column("LastName");
         });
 
         Map(x => x.Email)

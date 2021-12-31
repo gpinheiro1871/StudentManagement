@@ -1,7 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using StudentManagement.Domain.Utils;
 using System.Text.RegularExpressions;
-using static StudentManagement.Domain.Utils.Error;
 
 namespace StudentManagement.Domain.Models.Students
 {
@@ -17,15 +16,15 @@ namespace StudentManagement.Domain.Models.Students
         public static Result<Email, Error> Create(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
-                return Errors.General.ValueIsRequired();
+                return Errors.General.ValueIsRequired(nameof(Email));
 
             email = email.Trim();
 
             if (email.Length > 200)
-                return Errors.General.InvalidLength(email);
+                return Errors.General.InvalidLength(nameof(Email));
 
             if (!Regex.IsMatch(email, @"^(.+)@(.+)$"))
-                return Errors.General.ValueIsInvalid();
+                return Errors.General.ValueIsInvalid(nameof(Email));
 
             return new Email(email);
         }

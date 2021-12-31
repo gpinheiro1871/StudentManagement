@@ -1,6 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
 using StudentManagement.Domain.Utils;
-using static StudentManagement.Domain.Utils.Error;
 
 namespace StudentManagement.Domain.Models.Students;
 
@@ -54,22 +53,32 @@ public class Student :
         return student;
     }
 
-    public virtual UnitResult<Error> Enroll(Course course)
+    public virtual UnitResult<Error> CanEnroll(Course course)
     {
-        if (_enrollments.Count == 2)
-        {
-            return Errors.Student.TooManyEnrollments();
-        }
-
         if (_enrollments.Any(x => x.Course == course))
         {
             return Errors.Student.AlreadyEnrolled(course.Name);
         }
 
-        _enrollments.Add(new Enrollment(this, course, null));
+        if (_enrollments.Count == 2)
+        {
+            return Errors.Student.TooManyEnrollments();
+        }
 
         return UnitResult.Success<Error>();
     }
+
+    public virtual void Enroll(Course course)
+    {
+        if (CanEnroll(course).IsFailure)
+        {
+            throw new InvalidOperationException("CanEnroll not called");
+        }
+
+        _enrollments.Add(new Enrollment(this, course, null));
+    }
+
+
 
     public virtual UnitResult<Error> Grade(Course course, Grade grade)
     {

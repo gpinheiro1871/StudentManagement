@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using StudentManagement.Domain.Utils;
 
 namespace StudentManagement.Domain.Models.Students;
 
@@ -22,8 +23,16 @@ public class Course : Entity
         Name = name;
     }
 
-    public static Course? FromId(long id)
+    public static Result<Course, Error> FromId(long id)
     {
-        return AllCourses.SingleOrDefault(x => x.Id == id);
+        Course? course = AllCourses.SingleOrDefault(x => x.Id == id);
+        if (course is null)
+        {
+            return Errors.General.NotFound(id);
+        }
+        else
+        {
+            return course;
+        }
     }
 }

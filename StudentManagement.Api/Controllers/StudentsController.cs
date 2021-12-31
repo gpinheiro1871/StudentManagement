@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Mvc;
-using StudentManagement.Api.Dtos;
+using StudentManagement.Api.DataContracts;
+using StudentManagement.Api.Utils;
 using StudentManagement.Domain.Models.Students;
 using StudentManagement.Domain.Services;
 using StudentManagement.Domain.Utils;
@@ -10,7 +11,7 @@ namespace StudentManagement.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public sealed class StudentsController : ControllerBase
+public sealed class StudentsController : ApplicationController
 {
     private readonly UnitOfWork _unitOfWork;
     private readonly IStudentRepository _studentRepository;
@@ -25,10 +26,10 @@ public sealed class StudentsController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(List<StudentDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope<List<StudentDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
     {
-        IReadOnlyCollection<Student> students = await _studentRepository.QueryAll();
+        IReadOnlyCollection<Student> students = await _studentRepository.QueryAllAsync();
 
         List <StudentDto> dtos = students.Select(x => ConvertToDto(x)).ToList();
 
@@ -36,14 +37,15 @@ public sealed class StudentsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(StudentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope<StudentDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Get(long id)
     {
         Student? student = await _studentRepository.QueryByIdAsync(id);
 
         if (student is null)
         {
-            return NotFound();
+            return NotFound(nameof(Student), Errors.General.NotFound(id));
         }
 
         return Ok(ConvertToDto(student));
@@ -81,41 +83,30 @@ public sealed class StudentsController : ControllerBase
 
     // Register
     [HttpPost]
-    [ProducesResponseType(typeof(StudentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope<StudentDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register(RegisterRequest dto)
     {
-        //find course
-        Course? course = Course.FromId(dto.Enrollment.CourseId);
-        if (course is null)
-        {
-            return BadRequest("Course not found.");
-        }
+        Course course = Course.FromId(dto.Enrollment.CourseId).Value;
 
-        //create student
         Name name = Name.Create(dto.FirstName, dto.LastName).Value;
 
         Email email = Email.Create(dto.Email).Value;
 
-        var studentResult = await _studentManager.Create(name, email, course);
-
-        if (studentResult.IsFailure)
-        {
-            return Ok(studentResult.Error);
-        }
-
-        Student student = studentResult.Value;
+        Student student = await _studentManager.CreateAsync(name, email, course);
 
         await _studentRepository.SaveAsync(student);
 
         await _unitOfWork.CommitAsync();
 
-        //return dto
-        return Ok(ConvertToDto(student));
+        return CreatedAtAction(
+            nameof(Get), nameof(StudentsController), new { id = student.Id }, student);
     }
 
     // Unregister
     [HttpDelete]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Unregister(long id)
     {
         //Find student
@@ -123,7 +114,7 @@ public sealed class StudentsController : ControllerBase
 
         if (student is null)
         {
-            return BadRequest();
+            return NotFound(nameof(Student), Errors.General.NotFound(id));
         }
 
         await _studentRepository.DeleteAsync(student);
@@ -136,26 +127,32 @@ public sealed class StudentsController : ControllerBase
     // EditPersonalInfo
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> EditPersonalInfo(long id, EditPersonalInfoRequest dto)
     {
         //Find student
         Student? student = await _studentRepository.GetByIdAsync(id);
-
         if (student is null)
         {
-            return NotFound();
+            return NotFound(nameof(Student), Errors.General.NotFound(id));
         }
 
         Name name = Name.Create(dto.FirstName, dto.LastName).Value;
 
         Email email = Email.Create(dto.Email).Value;
 
-        UnitResult<Error> result = await _studentManager.EditPersonalInfo(student, name, email);
-
-        if (result.IsFailure)
+        // Check for email uniqueness
+        if (email != student.Email)
         {
-            return BadRequest(result.Error);
+            bool emailExists = await _studentRepository.EmailExistsAsync(email);
+
+            if (emailExists)
+            {
+                return Error(nameof(dto.Email), Errors.Student.EmailIsTaken());
+            }
         }
+
+        await _studentManager.EditPersonalInfoAsync(student, name, email);
 
         await _unitOfWork.CommitAsync();
 
@@ -164,18 +161,24 @@ public sealed class StudentsController : ControllerBase
 
     // Enroll
     [HttpPost("{id}/enrollments")]
-    [ProducesResponseType(typeof(StudentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope<StudentDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Enroll(long id, EnrollRequest dto)
     {
-        //find course
-        Course? course = Course.FromId(dto.CourseId);
-
-        //find student
         Student? student = await _studentRepository.GetByIdAsync(id);
-
-        if (course is null || student is null)
+        if (student is null)
         {
-            return BadRequest();
+            return NotFound(nameof(id), Errors.General.NotFound(id));
+        }
+
+        Course course = Course.FromId(dto.CourseId).Value;
+
+        var canEnroll = student.CanEnroll(course);
+
+        if (canEnroll.IsFailure)
+        {
+            return Error(nameof(Student), canEnroll.Error);
         }
 
         student.Enroll(course);
@@ -187,20 +190,24 @@ public sealed class StudentsController : ControllerBase
 
     // Grade
     [HttpPut("{id}/enrollments")]
-    public async Task<IActionResult> Grade(long id, GradeRequest dto)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Grade(long id, [FromBody] GradeRequest dto)
     {
-        //find course
-        Course? course = Course.FromId(dto.CourseId);
-
-        //find student
         Student? student = await _studentRepository.GetByIdAsync(id);
-
-        if (course is null || student is null)
+        if (student is null)
         {
-            return BadRequest();
+            return NotFound(nameof(id), Errors.General.NotFound(id));
         }
 
-        student.Grade(course, dto.Grade);
+        Course course = Course.FromId(dto.CourseId).Value;
+
+        var result = student.Grade(course, dto.Grade);
+        if (result.IsFailure)
+        {
+            return Error(nameof(Student), result.Error);
+        }
 
         await _unitOfWork.CommitAsync();
 
@@ -209,20 +216,24 @@ public sealed class StudentsController : ControllerBase
 
     //Transfer
     [HttpPut("{id}/enrollments/{enrollmentNumber}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Transfer(long id, int enrollmentNumber, TransferRequest dto)
     {
-        //find course
-        Course? course = Course.FromId(dto.CourseId);
-
-        //find student
         Student? student = await _studentRepository.GetByIdAsync(id);
-
-        if (course is null || student is null)
+        if (student is null)
         {
-            return BadRequest();
+            return NotFound(nameof(id), Errors.General.NotFound(id));
         }
 
-        student.Transfer(enrollmentNumber, course, dto.Grade);
+        Course course = Course.FromId(dto.CourseId).Value;
+
+        var result = student.Transfer(enrollmentNumber, course, dto.Grade);
+        if (result.IsFailure)
+        {
+            return Error(nameof(Student), result.Error);
+        }
 
         await _unitOfWork.CommitAsync();
 
@@ -231,22 +242,25 @@ public sealed class StudentsController : ControllerBase
 
     // Disenroll
     [HttpDelete("{id}/enrollments")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Disenroll(long id, DisenrollRequest dto)
     {
-        //find course
-        Course? course = Course.FromId(dto.CourseId);
-
         //find student
         Student? student = await _studentRepository.GetByIdAsync(id);
-
-        //Course? course = await _schoolContext.Courses.FindAsync(dto.CourseId);
-
-        if (course is null || student is null)
+        if (student is null)
         {
-            return BadRequest();
+            return NotFound(nameof(id), Errors.General.NotFound(id));
         }
 
-        student.Disenroll(course, dto.Comment);
+        Course course = Course.FromId(dto.CourseId).Value;
+
+        var result = student.Disenroll(course, dto.Comment);
+        if (result.IsFailure)
+        {
+            return Error(nameof(Student), result.Error);
+        }
 
         await _unitOfWork.CommitAsync();
 

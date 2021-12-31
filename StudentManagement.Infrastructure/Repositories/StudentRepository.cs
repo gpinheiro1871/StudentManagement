@@ -17,12 +17,11 @@ namespace StudentManagement.Infrastructure.Repositories
             return _unitOfWork.GetByIdAsync<Student>(id);
         }
 
-        public Task<List<Student>> QueryAll()
+        public Task<List<Student>> QueryAllAsync()
         {
-            IQueryable<Student> query = _unitOfWork.Query<Student>()
-                .FetchLazyProperties();
-
-            return query.ToListAsync();
+            IQueryable<Student> query = _unitOfWork.Query<Student>();
+                
+            return query.Fetch(x => x.Enrollments).ToListAsync();
         }
 
         public Task SaveAsync(Student student)
@@ -37,14 +36,15 @@ namespace StudentManagement.Infrastructure.Repositories
 
         public Task<Student?> QueryByIdAsync(long id)
         {
-            IQueryable<Student> query = _unitOfWork.Query<Student>()
-                .FetchLazyProperties();
+            IQueryable<Student> query = _unitOfWork.Query<Student>();
 
-            return query.Where(x => x.Id == id).FirstOrDefaultAsync() 
+            return query.Where(x => x.Id == id)
+                .Fetch(x => x.Enrollments)
+                .FirstOrDefaultAsync() 
                 as Task<Student?>;
         }
 
-        public Task<bool> EmailExists(Email email)
+        public Task<bool> EmailExistsAsync(Email email)
         {
             IQueryable<Student> query = _unitOfWork.Query<Student>();
 

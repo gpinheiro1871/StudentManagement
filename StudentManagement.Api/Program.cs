@@ -1,7 +1,11 @@
+using FluentValidation.AspNetCore;
+using StudentManagement.Api.Utils;
+using StudentManagement.Api.Validations;
 using StudentManagement.Domain.Models.Students;
 using StudentManagement.Domain.Services;
 using StudentManagement.Infrastructure;
 using StudentManagement.Infrastructure.Repositories;
+using System.ComponentModel;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,22 +14,25 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(null, true));
+    })
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = ModelStateValidator.ValidateModelState;
+    })
+    .AddFluentValidation(options =>
+    {
+        options.RegisterValidatorsFromAssemblyContaining<RegisterRequestValidator>();
+    });
+
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(config =>
 {
-    config.CustomSchemaIds(x => GetNestedDisplayName(x));
+    config.CustomSchemaIds(x => Helpers.GetNestedDisplayName(x));
+    config.SchemaGeneratorOptions.UseAllOfForInheritance = true;
 });
-
-// EFCore configuration... bye bye !
-//builder.Services.AddDbContext<SchoolContext>(
-//    options =>
-//    {
-//        options.UseSqlite(builder.Configuration.GetConnectionString("SchoolDb"));
-//        options.EnableSensitiveDataLogging();
-//        options.LogTo(Console.WriteLine);
-//    });
 
 // Dependency Injection
 builder.Services.AddSingleton(new SessionFactory(builder.Configuration.GetConnectionString("SchoolDb")));
@@ -40,6 +47,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    app.UseExceptionHandler("/error-local-development");
+}
+else
+{
+    app.UseExceptionHandler("/error");
 }
 
 app.UseHttpsRedirection();
@@ -49,28 +62,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-
-
-/**
- *  <summary>
- *  Generates a string containing the type name and all its
- *  parents in descending order and separated by periods
- *  </summary>
- *  <example>
- *  x = C
- *  returns
- *  "A.B.C"
- *  </example>
- */
-string GetNestedDisplayName(Type x)
-{
-    if (x.IsNested && x.DeclaringType is not null)
-    {
-        return $"{GetNestedDisplayName(x.DeclaringType)}.{x.Name}";
-    }
-    else
-    {
-        return x.Name;
-    }
-}

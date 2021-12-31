@@ -1,15 +1,25 @@
-﻿using StudentManagement.Domain.Models.Students;
+﻿using Moq;
+using StudentManagement.Domain.Models.Students;
+using StudentManagement.Domain.Services;
+using System.Threading.Tasks;
 
 namespace StudentManagement.Tests;
 
 public class Builders
 {
-    public static Student buildStudent()
+    public static async Task<Student> buildStudent()
     {
-        var nameResult = Name.Create("Lucas", "Smith");
-        var emailResult = Email.Create("lucass@gmail.com");
-        var course = Course.FromId(1L);
-        var student = new Student(nameResult.Value, emailResult.Value, course);
+
+        var name = Name.Create("Lucas", "Smith").Value;
+        var email = Email.Create("lucass@gmail.com").Value;
+        var course = Course.FromId(1L).Value;
+
+        Mock<IStudentRepository> _repositoryStub = new();
+        _repositoryStub.Setup(x => x.EmailExistsAsync(email)).ReturnsAsync(false);
+
+        StudentManager studentManager = new(_repositoryStub.Object);
+
+        var student = await studentManager.CreateAsync(name, email, course);
 
         return student;
     }

@@ -3,6 +3,7 @@ using FluentNHibernate.Cfg.Db;
 using FluentNHibernate.Conventions;
 using FluentNHibernate.Conventions.Instances;
 using NHibernate;
+using NHibernate.SqlCommand;
 using System.Reflection;
 
 namespace StudentManagement.Infrastructure
@@ -18,7 +19,12 @@ namespace StudentManagement.Infrastructure
 
         internal ISession OpenSession()
         {
-            return _factory.OpenSession();
+            #if DEBUG
+                var interceptor = new SqlDebugOutputInterceptor();
+                return _factory.WithOptions().Interceptor(interceptor).OpenSession();
+            #else
+                return _factory.OpenSession();
+            #endif
         }
 
         private static ISessionFactory BuildSessionFactory(string connectionString)
@@ -30,6 +36,7 @@ namespace StudentManagement.Infrastructure
                     .Conventions.Add<IdConvention>()
                     .Conventions.Add<ReferenceConvention>()
                     .Conventions.Add<TableNameConvention>());
+            
 
             return configuration.BuildSessionFactory();
         }
@@ -56,6 +63,17 @@ namespace StudentManagement.Infrastructure
             public void Apply(IManyToOneInstance instance)
             {
                 instance.Column(instance.Name + "Id");
+            }
+        }
+
+        public class SqlDebugOutputInterceptor : EmptyInterceptor
+        {
+            public override SqlString OnPrepareStatement(SqlString sql)
+            {
+                Console.Write("NHibernate: ");
+                Console.WriteLine(sql);
+
+                return base.OnPrepareStatement(sql);
             }
         }
     }

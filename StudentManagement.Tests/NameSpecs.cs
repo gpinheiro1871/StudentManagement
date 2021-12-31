@@ -36,8 +36,8 @@ namespace StudentManagement.Tests
 
             //ASSERT
             name.IsSuccess.Should().BeTrue();
-            name.Value.First.Should().Be(firstName);
-            name.Value.Last.Should().Be(lastName);
+            name.Value.FirstName.Should().Be(firstName);
+            name.Value.LastName.Should().Be(lastName);
         }
     }
 }

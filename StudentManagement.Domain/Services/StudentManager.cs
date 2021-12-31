@@ -1,7 +1,4 @@
-﻿using CSharpFunctionalExtensions;
-using StudentManagement.Domain.Models.Students;
-using StudentManagement.Domain.Utils;
-using static StudentManagement.Domain.Utils.Error;
+﻿using StudentManagement.Domain.Models.Students;
 
 namespace StudentManagement.Domain.Services
 {
@@ -14,14 +11,14 @@ namespace StudentManagement.Domain.Services
             _studentRepository = studentRepository;
         }
 
-        public async Task<Result<Student, Error>> Create(Name name, Email email, Course course)
+        public async Task<Student> CreateAsync(Name name, Email email, Course course)
         {
             // Check for email uniqueness
-            bool emailExists = await _studentRepository.EmailExists(email);
+            bool emailExists = await _studentRepository.EmailExistsAsync(email);
 
             if (emailExists)
             {
-                return Errors.Student.EmailIsTaken();
+                throw new InvalidOperationException("Email exists");
             }
 
             Student student = Student.Create(name, email, course);
@@ -29,19 +26,20 @@ namespace StudentManagement.Domain.Services
             return student;
         }
 
-        public async Task<UnitResult<Error>> EditPersonalInfo(Student student, Name name, Email email)
+        public async Task EditPersonalInfoAsync(Student student, Name name, Email email)
         {
             // Check for email uniqueness
-            bool emailExists = await _studentRepository.EmailExists(email);
-
-            if (emailExists)
+            if (email != student.Email)
             {
-                return Errors.Student.EmailIsTaken();
+                bool emailExists = await _studentRepository.EmailExistsAsync(email);
+
+                if (emailExists)
+                {
+                    throw new InvalidOperationException("Email exists");
+                }
             }
 
             student.EditPersonalInfo(name, email);
-
-            return UnitResult.Success<Error>();
         }
     }
 }

@@ -1,49 +1,48 @@
 ﻿using CSharpFunctionalExtensions;
 using StudentManagement.Domain.Utils;
-using static StudentManagement.Domain.Utils.Error;
 
 namespace StudentManagement.Domain.Models.Students;
 
 public class Name : ValueObject
 {
-    public string First { get; }
-    public string Last { get; }
+    public string FirstName { get; }
+    public string LastName { get; }
 
     #pragma warning disable CS8618 
     protected Name() { }
 
     private Name(string firstName, string lastName)
     {
-        First = firstName;
-        Last = lastName;
+        FirstName = firstName;
+        LastName = lastName;
     }
 
     public static Result<Name, Error> Create(string firstName, string lastName)
     {
         if (string.IsNullOrWhiteSpace(firstName))
-            return Errors.General.ValueIsRequired();
+            return Errors.General.ValueIsRequired(nameof(FirstName));
         if (string.IsNullOrWhiteSpace(lastName))
-            return Errors.General.ValueIsRequired();
+            return Errors.General.ValueIsRequired(nameof(LastName));
 
         firstName = firstName.Trim();
         lastName = lastName.Trim();
 
         if (firstName.Length > 200)
-            return Errors.General.InvalidLength(firstName);
+            return Errors.General.InvalidLength(nameof(FirstName));
         if (lastName.Length > 200)
-            return Errors.General.InvalidLength(lastName);
+            return Errors.General.InvalidLength(nameof(LastName));
 
         return new Name(firstName, lastName);
     }
 
     public override string ToString()
     {
-        return $"{First} {Last}";
+        return $"{FirstName} {LastName}";
     }
 
     protected override IEnumerable<object> GetEqualityComponents()
     {
-        yield return First;
-        yield return Last;
+        yield return FirstName;
+        yield return LastName;
     }
 }

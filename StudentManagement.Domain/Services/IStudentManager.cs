@@ -1,12 +1,10 @@
-﻿using CSharpFunctionalExtensions;
-using StudentManagement.Domain.Models.Students;
-using StudentManagement.Domain.Utils;
+﻿using StudentManagement.Domain.Models.Students;
 
 namespace StudentManagement.Domain.Services
 {
     public interface IStudentManager
     {
-        public Task<Result<Student, Error>> Create(Name name, Email email, Course course);
-        Task<UnitResult<Error>> EditPersonalInfo(Student student, Name name, Email email);
+        public Task<Student> CreateAsync(Name name, Email email, Course course);
+        public Task EditPersonalInfoAsync(Student student, Name name, Email email);
     }
 }

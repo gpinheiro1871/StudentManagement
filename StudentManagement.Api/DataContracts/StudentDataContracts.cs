@@ -1,6 +1,9 @@
-﻿using StudentManagement.Domain.Models.Students;
+﻿using StudentManagement.Api.Utils;
+using StudentManagement.Domain.Models.Students;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
-namespace StudentManagement.Api.Dtos;
+namespace StudentManagement.Api.DataContracts;
 
 public sealed record StudentDto
 {
@@ -47,13 +50,15 @@ public sealed record EnrollRequest
 public sealed record GradeRequest
 {
     public long CourseId { get; init; }
-    public Grade Grade { get; init; }
+    [JsonConverter(typeof(StringNullableEnumConverter<Grade>))]
+    public Grade Grade { get; set; }
 }
 
 public sealed record TransferRequest
 {
     public long CourseId { get; init; }
-    public Grade Grade { get; init; }
+    [JsonConverter(typeof(StringNullableEnumConverter<Grade?>))]
+    public Grade? Grade { get; init; }
 }
 
 public sealed record DisenrollRequest
