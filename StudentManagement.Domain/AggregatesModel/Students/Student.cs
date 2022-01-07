@@ -28,16 +28,7 @@ public class Student :
     private readonly IList<Disenrollment> _disenrollments = new List<Disenrollment>();
     public virtual IReadOnlyList<Disenrollment> Disenrollments => _disenrollments.ToList();
 
-#pragma warning disable CS8618
-    protected Student() { }
-    private Student(Name name, Email email, Course course)
-    {
-        Name = name;
-        Email = email;
-    }
-#pragma warning restore CS8618
-
-    internal static Student Create(Name name, Email email, Course course)
+    public Student(Name name, Email email, Course course)
     {
         if (name is null)
         {
@@ -52,11 +43,10 @@ public class Student :
             throw new ArgumentNullException(nameof(email));
         }
 
-        Student student = new Student(name, email, course);
+        Name = name;
+        _email = email.Value;
 
-        student.Enroll(course);
-
-        return student;
+        Enroll(course);
     }
 
     public virtual UnitResult<Error> CanEnroll(Course course)
@@ -148,4 +138,9 @@ public class Student :
 
         return UnitResult.Success<Error>();
     }
+
+    // Empty Constructor for ORM purposes
+    #pragma warning disable CS8618
+    protected Student() { }
+    #pragma warning restore CS8618
 }

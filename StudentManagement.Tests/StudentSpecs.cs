@@ -1,7 +1,6 @@
 using Xunit;
 using FluentAssertions;
 using System;
-using System.Threading.Tasks;
 using StudentManagement.Domain.AggregatesModel.Students;
 using StudentManagement.Domain.AggregatesModel.Courses;
 
@@ -10,10 +9,10 @@ namespace StudentManagement.Tests;
 public class StudentSpecs
 {
     [Fact]
-    public async Task New_student_is_enrolled_in_one_course_with_no_grade()
+    public void New_student_is_enrolled_in_one_course_with_no_grade()
     {
         //ACT
-        var student = await Builders.buildStudent();
+        var student = Build.Student();
 
         //ASSERT
         student.Enrollments.Should().HaveCount(1);
@@ -21,10 +20,10 @@ public class StudentSpecs
     }
 
     [Fact]
-    public async Task Can_enroll_student()
+    public void Can_enroll_student()
     {
         //ARRANGE
-        Student student = await Builders.buildStudent();
+        Student student = Build.Student();
         Course course = Course.FromId(2L).Value;
 
         //ACT
@@ -36,10 +35,10 @@ public class StudentSpecs
     }
 
     [Fact]
-    public async Task Cannot_enroll_student_in_more_than_two_coursesAsync()
+    public void Cannot_enroll_student_in_more_than_two_coursesAsync()
     {
         //ARRANGE
-        Student student = await Builders.buildStudent();
+        Student student = Build.Student();
         Course course = Course.FromId(2L).Value;
         Course course2 = Course.FromId(3L).Value;
         student.Enroll(course);
@@ -52,10 +51,10 @@ public class StudentSpecs
     }
 
     [Fact]
-    public async Task Cannot_enroll_student_in_the_same_course_twice()
+    public void Cannot_enroll_student_in_the_same_course_twice()
     {
         //ARRANGE
-        Student student = await Builders.buildStudent();
+        Student student = Build.Student();
         Course course = Course.FromId(1L).Value;
 
         //ACT
@@ -66,10 +65,10 @@ public class StudentSpecs
     }
 
     [Fact]
-    public async Task Can_grade_studentAsync()
+    public void Can_grade_studentAsync()
     {
         //ARRANGE
-        Student student = await Builders.buildStudent();
+        Student student = Build.Student();
         Course course = Course.FromId(1L).Value;
 
         //ACT
@@ -80,10 +79,10 @@ public class StudentSpecs
     }
 
     [Fact]
-    public async Task Disenrolling_student_produces_disenrollment_with_commentAsync()
+    public void Disenrolling_student_produces_disenrollment_with_commentAsync()
     {
         //ARRANGE
-        Student student = await Builders.buildStudent();
+        Student student = Build.Student();
         Course course = Course.FromId(1L).Value;
         string comment = "Too bad!";
 
@@ -97,10 +96,10 @@ public class StudentSpecs
     }
 
     [Fact]
-    public async Task Can_transfer_student()
+    public void Can_transfer_student()
     {
         //ARRANGE
-        Student student = await Builders.buildStudent();
+        Student student = Build.Student();
         Course course = Course.FromId(2L).Value;
         Grade grade = Grade.A;
 
@@ -108,8 +107,8 @@ public class StudentSpecs
         student.Transfer(1, course, grade);
 
         //ASSERT
-        student.FirstEnrollment.Course.Should().Be(course);
-        student.FirstEnrollment.Grade.Should().Be(grade);
-
+        student.FirstEnrollment.Should().NotBeNull();
+        student.FirstEnrollment?.Course.Should().Be(course);
+        student.FirstEnrollment?.Grade.Should().Be(grade);
     }
 }

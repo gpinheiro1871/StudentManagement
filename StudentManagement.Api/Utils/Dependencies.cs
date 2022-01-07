@@ -4,7 +4,6 @@ using StudentManagement.Domain.Application.Dtos;
 using StudentManagement.Domain.Application.Queries;
 using StudentManagement.Domain.Infrastructure;
 using StudentManagement.Domain.Infrastructure.Repositories;
-using StudentManagement.Domain.Services;
 using StudentManagement.Domain.Utils;
 
 namespace StudentManagement.Api.Utils;
@@ -47,7 +46,6 @@ public static class Dependencies
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<IStudentRepository, StudentRepository>();
-        services.AddScoped<IStudentManager, StudentManager>();
 
         services.AddScoped<Messages>();
 

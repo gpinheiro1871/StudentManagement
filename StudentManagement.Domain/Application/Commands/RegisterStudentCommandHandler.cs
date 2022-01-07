@@ -34,7 +34,7 @@ public class RegisterStudentCommandHandler
             Errors.Student.EmailIsTaken();
         }
 
-        Student student = Student.Create(name, email, course);
+        Student student = new Student(name, email, course);
 
         await _studentRepository.SaveAsync(student);
 
