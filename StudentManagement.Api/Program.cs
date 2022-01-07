@@ -2,6 +2,7 @@ using FluentValidation.AspNetCore;
 using Newtonsoft.Json;
 using StudentManagement.Api.DataContracts.Validations;
 using StudentManagement.Api.Utils;
+using StudentManagement.Domain.Application.Commands;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,17 +28,15 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(config =>
 {
-    config.CustomSchemaIds(x => Helpers.GetNestedDisplayName(x));
+    config.CustomSchemaIds(x => Dependencies.GetNestedDisplayName(x));
     config.SchemaGeneratorOptions.UseAllOfForInheritance = true;
 });
 builder.Services.AddSwaggerGenNewtonsoftSupport ();
 
 // Dependency Injection
 builder.Services.AddNHibernate(builder.Configuration.GetConnectionString("SchoolDb"));
-
 builder.Services.AddInfrastructure();
-builder.Services.AddQueryHandlers();
-builder.Services.AddCommandHandlers();
+builder.Services.RegisterHandlersFromAssembly<RegisterStudentCommandHandler>();
 
 var app = builder.Build();
 
