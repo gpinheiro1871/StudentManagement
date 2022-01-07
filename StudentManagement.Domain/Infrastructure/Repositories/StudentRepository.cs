@@ -1,53 +1,53 @@
-﻿using NHibernate.Linq;
+﻿using NHibernate;
+using NHibernate.Linq;
 using StudentManagement.Domain.AggregatesModel.Students;
-using StudentManagement.Infrastructure.Utils;
 
-namespace StudentManagement.Infrastructure.Repositories
+namespace StudentManagement.Domain.Infrastructure.Repositories
 {
     public class StudentRepository : IStudentRepository
     {
-        private readonly UnitOfWork _unitOfWork;
+        private readonly ISession _session;
 
-        public StudentRepository(UnitOfWork unitOfWork)
+        public StudentRepository(ISession session)
         {
-            _unitOfWork = unitOfWork;
+            _session = session;
         }
 
         public Task<Student?> GetByIdAsync(long id)
         {
-            return _unitOfWork.GetByIdAsync<Student>(id);
+            return _session.GetAsync<Student?>(id);
         }
 
         public Task<List<Student>> QueryAllAsync()
         {
-            IQueryable<Student> query = _unitOfWork.Query<Student>();
-                
+            IQueryable<Student> query = _session.Query<Student>();
+
             return query.Fetch(x => x.Enrollments).ToListAsync();
         }
 
         public Task SaveAsync(Student student)
         {
-            return _unitOfWork.SaveOrUpdateAsync(student);
+            return _session.SaveOrUpdateAsync(student);
         }
 
         public Task DeleteAsync(Student student)
         {
-            return _unitOfWork.DeleteAsync(student);
+            return _session.DeleteAsync(student);
         }
 
         public Task<Student?> QueryByIdAsync(long id)
         {
-            IQueryable<Student> query = _unitOfWork.Query<Student>();
+            IQueryable<Student> query = _session.Query<Student>();
 
             return query.Where(x => x.Id == id)
-                .Fetch(x => x.Enrollments)
-                .FirstOrDefaultAsync() 
+                .FetchMany(x => x.Enrollments)
+                .SingleOrDefaultAsync()
                 as Task<Student?>;
         }
 
         public Task<bool> EmailExistsAsync(Email email)
         {
-            IQueryable<Student> query = _unitOfWork.Query<Student>();
+            IQueryable<Student> query = _session.Query<Student>();
 
             return query.AnyAsync(x => x.Email == email);
         }

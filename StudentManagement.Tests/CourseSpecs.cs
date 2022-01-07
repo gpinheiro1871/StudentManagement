@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using StudentManagement.Domain.Models.Students;
+using StudentManagement.Domain.AggregatesModel.Courses;
 using Xunit;
 
 namespace StudentManagement.Tests;

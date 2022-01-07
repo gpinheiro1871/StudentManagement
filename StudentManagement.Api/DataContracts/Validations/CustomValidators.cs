@@ -2,10 +2,22 @@
 using FluentValidation;
 using StudentManagement.Domain.Utils;
 
-namespace StudentManagement.Api.Utils;
+namespace StudentManagement.Api.DataContracts.Validations;
 
 public static class CustomValidators
 {
+    public static IRuleBuilderOptions<T, TProperty> NotEmpty<T, TProperty>(this IRuleBuilder<T, TProperty> ruleBuilder)
+    {
+        return DefaultValidatorExtensions.NotEmpty(ruleBuilder)
+            .WithMessage(Errors.General.ValueIsRequired(null).Serialize());
+    }
+
+    public static IRuleBuilderOptions<T, TProperty> NotNull<T, TProperty>(this IRuleBuilder<T, TProperty> ruleBuilder)
+    {
+        return DefaultValidatorExtensions.NotNull(ruleBuilder)
+            .WithMessage(Errors.General.ValueIsRequired(null).Serialize());
+    }
+
     public static IRuleBuilderOptions<T, TElement> MustBeValueObject<T, TElement, TValueObject>(
      this IRuleBuilder<T, TElement> ruleBuilder,
      Func<TElement, Result<TValueObject, Error>> factoryMethod)
@@ -21,7 +33,7 @@ public static class CustomValidators
     {
         return MustBeDomainObject(ruleBuilder, factoryMethod);
     }
-    
+
     private static IRuleBuilderOptions<T, TElement> MustBeDomainObject<T, TElement, TDomainObject>(
         IRuleBuilder<T, TElement> ruleBuilder,
         Func<TElement, Result<TDomainObject, Error>> factoryMethod)

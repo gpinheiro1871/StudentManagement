@@ -1,9 +1,10 @@
 ﻿using NHibernate;
+using StudentManagement.Domain.Utils;
 using System.Data;
 
-namespace StudentManagement.Infrastructure
+namespace StudentManagement.Infrastructure.Utils
 {
-    public class UnitOfWork
+    public class UnitOfWork : IUnitOfWork
     {
         private readonly ISession _session;
         private readonly ITransaction _transaction;
@@ -32,18 +33,18 @@ namespace StudentManagement.Infrastructure
             }
         }
 
-        internal Task<T?> GetByIdAsync<T>(long id)
+        public Task<T?> GetByIdAsync<T>(long id)
             where T : class
         {
             return _session.GetAsync<T?>(id);
         }
 
-        internal Task SaveOrUpdateAsync<T>(T entity)
+        public Task SaveOrUpdateAsync<T>(T entity)
         {
             return _session.SaveOrUpdateAsync(entity);
         }
 
-        internal Task DeleteAsync<T>(T entity)
+        public Task DeleteAsync<T>(T entity)
         {
             return _session.DeleteAsync(entity);
         }

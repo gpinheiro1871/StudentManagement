@@ -1,7 +1,7 @@
 ﻿using FluentNHibernate.Mapping;
 using StudentManagement.Domain.AggregatesModel.Courses;
 
-namespace StudentManagement.Infrastructure.Mappings
+namespace StudentManagement.Domain.Infrastructure.Mappings
 {
     public class CourseMap : ClassMap<Course>
     {

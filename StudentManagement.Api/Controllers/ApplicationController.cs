@@ -1,31 +1,40 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using StudentManagement.Api.Utils;
+﻿using CSharpFunctionalExtensions;
+using Microsoft.AspNetCore.Mvc;
 using StudentManagement.Domain.Utils;
 
 namespace StudentManagement.Api.Controllers;
 
 [ApiController]
-public class ApplicationController : ControllerBase
+public abstract class ApplicationController : BaseController
 {
-    protected IActionResult Ok<T>(T result)
+    private readonly Messages _messages;
+
+    protected ApplicationController(Messages messages)
     {
-        return base.Ok(Envelope.Result(result));
+        _messages = messages;
     }
 
-    protected IActionResult Error(string fieldName, Error error)
+    protected async Task<IActionResult> FromQuery<T>(string resourceName, IQuery<T> query)
     {
-        return base.Ok(Envelope.Error(fieldName, error));
+        Result<T, Error> result = await _messages.DispatchAsync(query);
+
+        if (result.IsFailure)
+        {
+            return Error(resourceName, result.Error);
+        }
+
+        return Ok(result.Value);
     }
 
-    protected IActionResult NotFound(string fieldName, Error error)
+    protected async Task<IActionResult> FromCommand(string resourceName, ICommand command)
     {
-        return base.NotFound(Envelope.Error(fieldName, error));
-    }
+        UnitResult<Error> result = await _messages.DispatchAsync(command);
 
-    protected IActionResult CreatedAtAction<T>(
-        string actionName, string controllerName, object param, T result)
-    {
-        return base.CreatedAtAction(
-            actionName, controllerName, param, Envelope.Result(result));
+        if (result.IsFailure)
+        {
+            return Error(resourceName, result.Error);
+        }
+
+        return NoContent();
     }
 }

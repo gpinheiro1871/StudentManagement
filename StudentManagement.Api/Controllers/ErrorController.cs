@@ -6,7 +6,7 @@ namespace StudentManagement.Api.Controllers;
 
 [ApiController]
 [ApiExplorerSettings(IgnoreApi = true)]
-public class ErrorController : ApplicationController
+public class ErrorController : BaseController
 {
     [Route("/error-local-development")]
     public IActionResult ErrorLocalDevelopment(

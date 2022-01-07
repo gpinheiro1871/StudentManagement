@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
+using StudentManagement.Domain.AggregatesModel.Courses;
 
-namespace StudentManagement.Domain.Models.Students;
+namespace StudentManagement.Domain.AggregatesModel.Students;
 
 public class Enrollment : Entity
 {
@@ -8,7 +9,7 @@ public class Enrollment : Entity
     public virtual Course Course { get; protected set; }
     public virtual Grade? Grade { get; protected set; }
 
-    #pragma warning disable CS8618
+#pragma warning disable CS8618
     protected Enrollment() { }
 
     public Enrollment(Student student, Course course, Grade? grade)

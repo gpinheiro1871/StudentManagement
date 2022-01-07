@@ -1,4 +1,4 @@
-﻿namespace StudentManagement.Domain.Models.Students;
+﻿namespace StudentManagement.Domain.AggregatesModel.Students;
 
 public interface IStudentRepository
 {

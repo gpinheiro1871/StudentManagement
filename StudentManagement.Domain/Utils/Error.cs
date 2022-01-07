@@ -28,7 +28,7 @@ public sealed class Error : ValueObject
         return $"{Code}{Separator}{Message}";
     }
 
-    public static Error Deserialize(string serialized)
+    public static Error? Deserialize(string serialized)
     {
         if (serialized == "A non-empty request body is required.")
             return Errors.General.ValueIsRequired(null);
@@ -36,7 +36,7 @@ public sealed class Error : ValueObject
         string[] data = serialized.Split(new[] { Separator }, StringSplitOptions.RemoveEmptyEntries);
 
         if (data.Length < 2)
-            throw new Exception($"Invalid error serialization: '{serialized}'");
+            return null;
 
         return new Error(data[0], data[1]);
     }
@@ -46,10 +46,15 @@ public static class Errors
 {
     public static class General
     {
+        public const string NotFoundCode = "record.not.found";
+
+        public static Error ClientError() =>
+            new Error("client.error", "Request is invalid");
+
         public static Error NotFound(long? id) =>
             id is null
-            ? new Error("record.not.found", "Record not found")
-            : new Error("record.not.found", $"Record not found for Id '{id}'");
+            ? new Error(NotFoundCode, "Record not found")
+            : new Error(NotFoundCode, $"Record not found for Id '{id}'");
 
         public static Error ValueIsInvalid(string? name) =>
             name is null

@@ -1,10 +1,10 @@
 ﻿using CSharpFunctionalExtensions;
+using StudentManagement.Domain.AggregatesModel.Courses;
 using StudentManagement.Domain.Utils;
 
-namespace StudentManagement.Domain.Models.Students;
-
-public class Student : 
-    Entity, 
+namespace StudentManagement.Domain.AggregatesModel.Students;
+public class Student :
+    Entity,
     IAggregateRoot
 {
     public virtual Name Name { get; protected set; }
@@ -20,20 +20,22 @@ public class Student :
     private readonly IList<Enrollment> _enrollments = new List<Enrollment>();
     public virtual IReadOnlyList<Enrollment> Enrollments => _enrollments.ToList();
 
-    public virtual Enrollment FirstEnrollment => GetEnrollment(0);
-    public virtual Enrollment? SecondEnrollment => GetEnrollment(1);
+    public virtual Enrollment? FirstEnrollment => 
+        _enrollments.ElementAtOrDefault(0);
+    public virtual Enrollment? SecondEnrollment => 
+        _enrollments.ElementAtOrDefault(1);
 
     private readonly IList<Disenrollment> _disenrollments = new List<Disenrollment>();
     public virtual IReadOnlyList<Disenrollment> Disenrollments => _disenrollments.ToList();
 
-    #pragma warning disable CS8618
+#pragma warning disable CS8618
     protected Student() { }
-
     private Student(Name name, Email email, Course course)
     {
         Name = name;
         Email = email;
     }
+#pragma warning restore CS8618
 
     internal static Student Create(Name name, Email email, Course course)
     {
@@ -42,6 +44,10 @@ public class Student :
             throw new ArgumentNullException(nameof(name));
         }
         if (email is null)
+        {
+            throw new ArgumentNullException(nameof(email));
+        }
+        if (course is null)
         {
             throw new ArgumentNullException(nameof(email));
         }
@@ -78,8 +84,6 @@ public class Student :
         _enrollments.Add(new Enrollment(this, course, null));
     }
 
-
-
     public virtual UnitResult<Error> Grade(Course course, Grade grade)
     {
         Enrollment? enrollment = _enrollments.FirstOrDefault(x => x.Course == course);
@@ -97,7 +101,7 @@ public class Student :
     public virtual UnitResult<Error> Disenroll(Course course, string comment)
     {
         Enrollment? enrollment = _enrollments.FirstOrDefault(y => y.Course == course);
-        
+
         if (enrollment is null)
         {
             return Errors.Student.NotEnrolled(course.Name);
@@ -109,14 +113,6 @@ public class Student :
         _disenrollments.Add(disenrollment);
 
         return UnitResult.Success<Error>();
-    }
-
-    private Enrollment GetEnrollment(int index)
-    {
-        if (_enrollments.Count > index)
-            return _enrollments[index];
-
-        return null;
     }
 
     protected internal virtual void EditPersonalInfo(Name name, Email email)
@@ -141,7 +137,7 @@ public class Student :
             return Errors.Student.InvalidEnrollmentNumber();
         }
 
-        Enrollment enrollment = _enrollments.ElementAt(enrollmentNumber-1);
+        Enrollment? enrollment = _enrollments.ElementAtOrDefault(enrollmentNumber - 1);
 
         if (enrollment is null)
         {
@@ -153,4 +149,3 @@ public class Student :
         return UnitResult.Success<Error>();
     }
 }
-               

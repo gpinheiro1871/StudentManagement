@@ -1,10 +1,10 @@
 ﻿using FluentValidation;
-using StudentManagement.Api.DataContracts;
-using StudentManagement.Api.Utils;
-using StudentManagement.Domain.Models.Students;
+using FluentValidation.Results;
+using StudentManagement.Domain.AggregatesModel.Courses;
+using StudentManagement.Domain.AggregatesModel.Students;
 using StudentManagement.Domain.Utils;
 
-namespace StudentManagement.Api.Validations;
+namespace StudentManagement.Api.DataContracts.Validations;
 
 public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 {
@@ -23,15 +23,10 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
             })
             .WithMessage(Errors.Student.EmailIsTaken().Serialize());
 
-        RuleFor(x => x.Enrollment).MustBeEntity(x => Course.FromId(x.CourseId));
-    }
-}
-
-public class EnrollRequestValidator : AbstractValidator<EnrollRequest>
-{
-    public EnrollRequestValidator()
-    {
-        RuleFor(x => x.CourseId).MustBeEntity(x => Course.FromId(x));
+        RuleFor(x => x.Enrollment)
+            .Cascade(CascadeMode.Stop)
+            .NotNull()
+            .MustBeEntity(x => Course.FromId(x.CourseId));
     }
 }
 
@@ -53,11 +48,19 @@ public class GradeRequestValidator : AbstractValidator<GradeRequest>
 {
     public GradeRequestValidator()
     {
-        RuleFor(x => x.CourseId).MustBeEntity(x => Course.FromId(x));
-        
+        RuleFor(x => x.CourseId).NotNull().MustBeEntity(x => Course.FromId(x));
+
         RuleFor(x => x.Grade)
             .IsInEnum()
             .WithMessage(Errors.General.ValueIsInvalid(nameof(Grade)).Serialize());
+    }
+}
+
+public class EnrollRequestValidator : AbstractValidator<EnrollRequest>
+{
+    public EnrollRequestValidator()
+    {
+        RuleFor(x => x.CourseId).NotNull().MustBeEntity(x => Course.FromId(x));
     }
 }
 

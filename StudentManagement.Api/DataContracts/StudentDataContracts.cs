@@ -1,68 +1,46 @@
-﻿using StudentManagement.Api.Utils;
-using StudentManagement.Domain.Models.Students;
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
+﻿using StudentManagement.Domain.AggregatesModel.Students;
 
 namespace StudentManagement.Api.DataContracts;
 
-public sealed record StudentDto
-{
-    public long Id { get; init; }
-    public string Name { get; init; }
-    public string Email { get; init; }
-
-    public EnrollmentDto? FirstEnrollment { get; init; }
-    public EnrollmentDto? SecondEnrollment { get; init; }
-
-    public sealed record EnrollmentDto
-    {
-        public long CourseId { get; init; }
-        public string CourseName { get; init; }
-        public string? Grade { get; init; }
-    }
-}
-
 public sealed record RegisterRequest
 {
-    public string FirstName { get; init; }
-    public string LastName { get; init; }
-    public string Email { get; init; }
-    public EnrollmentDto Enrollment { get; init; }
+    public string FirstName { get; init; } = "";
+    public string LastName { get; init; } = string.Empty;
+    public string Email { get; init; } = string.Empty;
+    public EnrollmentDto Enrollment { get; init; } = new();
 
     public class EnrollmentDto
     {
-        public long CourseId { get; init; }
+        public long CourseId { get; init; } = 0;
     }
 }
 
 public sealed record EditPersonalInfoRequest
 {
-    public string FirstName { get; init; }
-    public string LastName { get; init; }
-    public string Email { get; init; }
+    public string FirstName { get; init; } = string.Empty;
+    public string LastName { get; init; } = string.Empty;
+    public string Email { get; init; } = string.Empty;
 }
 
 public sealed record EnrollRequest
 {
-    public long CourseId { get; init; }
+    public long CourseId { get; init; } = 0;
 }
 
 public sealed record GradeRequest
 {
-    public long CourseId { get; init; }
-    [JsonConverter(typeof(StringNullableEnumConverter<Grade>))]
+    public long CourseId { get; init; } = 0;
     public Grade Grade { get; set; }
 }
 
 public sealed record TransferRequest
 {
-    public long CourseId { get; init; }
-    [JsonConverter(typeof(StringNullableEnumConverter<Grade?>))]
-    public Grade? Grade { get; init; }
+    public long CourseId { get; init; } = 0;
+    public Grade? Grade { get; init; } = null;
 }
 
 public sealed record DisenrollRequest
 {
-    public long CourseId { get; init; }
-    public string Comment { get; init; }
+    public long CourseId { get; init; } = 0;
+    public string Comment { get; init; } = string.Empty;
 }

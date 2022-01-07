@@ -1,4 +1,5 @@
-﻿using StudentManagement.Domain.Models.Students;
+﻿using StudentManagement.Domain.AggregatesModel.Courses;
+using StudentManagement.Domain.AggregatesModel.Students;
 
 namespace StudentManagement.Domain.Services
 {

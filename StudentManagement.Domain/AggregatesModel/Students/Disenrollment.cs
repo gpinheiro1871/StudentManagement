@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
+using StudentManagement.Domain.AggregatesModel.Courses;
 
-namespace StudentManagement.Domain.Models.Students
+namespace StudentManagement.Domain.AggregatesModel.Students
 {
     public class Disenrollment : Entity
     {

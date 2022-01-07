@@ -1,6 +1,6 @@
 ﻿using Xunit;
 using FluentAssertions;
-using StudentManagement.Domain.Models.Students;
+using StudentManagement.Domain.AggregatesModel.Students;
 
 namespace StudentManagement.Tests
 {

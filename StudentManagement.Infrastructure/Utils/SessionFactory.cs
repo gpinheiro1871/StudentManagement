@@ -6,7 +6,7 @@ using NHibernate;
 using NHibernate.SqlCommand;
 using System.Reflection;
 
-namespace StudentManagement.Infrastructure
+namespace StudentManagement.Infrastructure.Utils
 {
     public sealed class SessionFactory
     {
@@ -19,24 +19,24 @@ namespace StudentManagement.Infrastructure
 
         internal ISession OpenSession()
         {
-            #if DEBUG
-                var interceptor = new SqlDebugOutputInterceptor();
-                return _factory.WithOptions().Interceptor(interceptor).OpenSession();
-            #else
+#if DEBUG
+            var interceptor = new SqlDebugOutputInterceptor();
+            return _factory.WithOptions().Interceptor(interceptor).OpenSession();
+#else
                 return _factory.OpenSession();
-            #endif
+#endif
         }
 
         private static ISessionFactory BuildSessionFactory(string connectionString)
         {
             FluentConfiguration configuration = Fluently.Configure()
                 .Database(SQLiteConfiguration.Standard.ConnectionString(connectionString))
-                .Mappings(x => 
+                .Mappings(x =>
                     x.FluentMappings.AddFromAssembly(Assembly.GetExecutingAssembly())
                     .Conventions.Add<IdConvention>()
                     .Conventions.Add<ReferenceConvention>()
                     .Conventions.Add<TableNameConvention>());
-            
+
 
             return configuration.BuildSessionFactory();
         }

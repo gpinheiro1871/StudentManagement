@@ -7,9 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StudentManagement.Tests", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StudentManagement.Domain", "StudentManagement.Domain\StudentManagement.Domain.csproj", "{B2DB72AD-95BE-4C9D-ACBD-B3D1836DEF1C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StudentManagement.Infrastructure", "StudentManagement.Infrastructure\StudentManagement.Infrastructure.csproj", "{1C916E57-AA0D-4C3C-A5FC-B2F306C17E5E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StudentManagement.Api", "StudentManagement.Api\StudentManagement.Api.csproj", "{82BCD9D1-2F81-4C06-8640-45BB35D8AA3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StudentManagement.Api", "StudentManagement.Api\StudentManagement.Api.csproj", "{82BCD9D1-2F81-4C06-8640-45BB35D8AA3D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,10 +23,6 @@ Global
 		{B2DB72AD-95BE-4C9D-ACBD-B3D1836DEF1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2DB72AD-95BE-4C9D-ACBD-B3D1836DEF1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B2DB72AD-95BE-4C9D-ACBD-B3D1836DEF1C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1C916E57-AA0D-4C3C-A5FC-B2F306C17E5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1C916E57-AA0D-4C3C-A5FC-B2F306C17E5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1C916E57-AA0D-4C3C-A5FC-B2F306C17E5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1C916E57-AA0D-4C3C-A5FC-B2F306C17E5E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{82BCD9D1-2F81-4C06-8640-45BB35D8AA3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{82BCD9D1-2F81-4C06-8640-45BB35D8AA3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{82BCD9D1-2F81-4C06-8640-45BB35D8AA3D}.Release|Any CPU.ActiveCfg = Release|Any CPU

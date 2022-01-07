@@ -1,8 +1,9 @@
 using Xunit;
 using FluentAssertions;
-using StudentManagement.Domain.Models.Students;
 using System;
 using System.Threading.Tasks;
+using StudentManagement.Domain.AggregatesModel.Students;
+using StudentManagement.Domain.AggregatesModel.Courses;
 
 namespace StudentManagement.Tests;
 

@@ -1,7 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using StudentManagement.Domain.Utils;
 
-namespace StudentManagement.Domain.Models.Students;
+namespace StudentManagement.Domain.AggregatesModel.Courses;
 
 public class Course : Entity
 {

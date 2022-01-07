@@ -1,14 +1,14 @@
 ﻿using CSharpFunctionalExtensions;
 using StudentManagement.Domain.Utils;
 
-namespace StudentManagement.Domain.Models.Students;
+namespace StudentManagement.Domain.AggregatesModel.Students;
 
 public class Name : ValueObject
 {
     public string FirstName { get; }
     public string LastName { get; }
 
-    #pragma warning disable CS8618 
+#pragma warning disable CS8618
     protected Name() { }
 
     private Name(string firstName, string lastName)

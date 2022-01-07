@@ -1,21 +1,18 @@
 using FluentValidation.AspNetCore;
+using Newtonsoft.Json;
+using StudentManagement.Api.DataContracts.Validations;
 using StudentManagement.Api.Utils;
-using StudentManagement.Api.Validations;
-using StudentManagement.Domain.Models.Students;
-using StudentManagement.Domain.Services;
-using StudentManagement.Infrastructure;
-using StudentManagement.Infrastructure.Repositories;
-using System.ComponentModel;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers()
-    .AddJsonOptions(options =>
+    .AddNewtonsoftJson(options =>
     {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(null, true));
+        options.SerializerSettings.Converters.Add(new NullableStringEnumConverter());
+        options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+        options.SerializerSettings.DefaultValueHandling = DefaultValueHandling.Populate;
     })
     .ConfigureApiBehaviorOptions(options =>
     {
@@ -33,12 +30,14 @@ builder.Services.AddSwaggerGen(config =>
     config.CustomSchemaIds(x => Helpers.GetNestedDisplayName(x));
     config.SchemaGeneratorOptions.UseAllOfForInheritance = true;
 });
+builder.Services.AddSwaggerGenNewtonsoftSupport ();
 
 // Dependency Injection
-builder.Services.AddSingleton(new SessionFactory(builder.Configuration.GetConnectionString("SchoolDb")));
-builder.Services.AddScoped<UnitOfWork>();
-builder.Services.AddScoped<IStudentRepository, StudentRepository>();
-builder.Services.AddScoped<IStudentManager, StudentManager>();
+builder.Services.AddNHibernate(builder.Configuration.GetConnectionString("SchoolDb"));
+
+builder.Services.AddInfrastructure();
+builder.Services.AddQueryHandlers();
+builder.Services.AddCommandHandlers();
 
 var app = builder.Build();
 
