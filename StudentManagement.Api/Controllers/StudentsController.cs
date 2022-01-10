@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using StudentManagement.Domain.AggregatesModel.Students;
+using StudentManagement.Domain.Application.Commands;
+using StudentManagement.Domain.Application.Queries;
+using StudentManagement.Domain.Application.Dtos;
 using StudentManagement.Api.DataContracts;
 using StudentManagement.Api.Utils;
-using StudentManagement.Domain.AggregatesModel.Students;
-using StudentManagement.Domain.Application.Commands;
-using StudentManagement.Domain.Application.Dtos;
-using StudentManagement.Domain.Application.Queries;
-using StudentManagement.Domain.Utils;
+using Microsoft.AspNetCore.Mvc;
+using MediatR;
 
 namespace StudentManagement.Api.Controllers;
 
@@ -13,19 +13,18 @@ namespace StudentManagement.Api.Controllers;
 [ApiController]
 public sealed class StudentsController : ApplicationController
 {
-    private readonly Messages _messages;
+    private readonly IMediator _mediator;
 
-    public StudentsController(Messages messages)
-        : base(messages)
+    public StudentsController(IMediator mediator)
+        :base(mediator)
     {
-        _messages = messages;
+        _mediator = mediator;
     }
 
     [HttpGet]
     [ProducesResponseType(typeof(Envelope<List<StudentDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll() =>
-        await FromQuery(nameof(Student),
-            new GetStudentListQuery());
+        await FromQuery(new GetStudentListQuery());
 
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(Envelope<StudentDto>), StatusCodes.Status200OK)]

@@ -19,66 +19,11 @@ public static class Dependencies
         return services;
     }
 
-    public static IServiceCollection RegisterHandlersFromAssembly<T>(this IServiceCollection services)
-    {
-        var handlers = Assembly.GetAssembly(typeof(T))?
-            .GetTypes()
-            .Where(t => t.Namespace is not null)
-            .Where(t => t.IsClass)
-            .Where(t => ImplementHandlerInterfaces(t.GetInterfaces()))
-            .ToList();
-
-        if (handlers is null)
-        {
-            return services;
-        }
-
-        var handlerTypes = handlers
-            .Select(type => new 
-            { 
-                handlerInterface = GetHandlerInterface(type),
-                handler = type
-            })
-            .Select(type => ( type.handler, type.handlerInterface));
-
-        foreach (var (handler, handlerInterface) in handlerTypes)
-        {
-            if (handlerInterface is null)
-            {
-                throw new ArgumentNullException(nameof(handlerInterface));
-            }
-            services.AddScoped(handlerInterface, handler);
-        }
-
-        return services;
-    }
-
-    private static Type? GetHandlerInterface(Type handler)
-    {
-        var interfaces = handler.GetInterfaces();
-
-        return interfaces.SingleOrDefault(x => IsHandler(x));
-    }
-
-    private static bool IsHandler(Type type)
-    {
-        return type.IsGenericType
-            && (type.GetGenericTypeDefinition() == typeof(IQueryHandler<,>)
-            || type.GetGenericTypeDefinition() == typeof(ICommandHandler<>));
-    }
-
-    private static bool ImplementHandlerInterfaces(Type[] types)
-    {
-        return types.Any(t => IsHandler(t));
-    }
-
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<IStudentRepository, StudentRepository>();
-
-        services.AddScoped<Messages>();
 
         return services;
     }

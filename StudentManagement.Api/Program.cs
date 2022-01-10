@@ -1,13 +1,13 @@
+using StudentManagement.Api.DataContracts.Validations;
+using StudentManagement.Domain.Application.Commands;
+using StudentManagement.Api.Utils;
 using FluentValidation.AspNetCore;
 using Newtonsoft.Json;
-using StudentManagement.Api.DataContracts.Validations;
-using StudentManagement.Api.Utils;
-using StudentManagement.Domain.Application.Commands;
+using MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers()
     .AddNewtonsoftJson(options =>
     {
@@ -36,7 +36,7 @@ builder.Services.AddSwaggerGenNewtonsoftSupport ();
 // Dependency Injection
 builder.Services.AddNHibernate(builder.Configuration.GetConnectionString("SchoolDb"));
 builder.Services.AddInfrastructure();
-builder.Services.RegisterHandlersFromAssembly<RegisterStudentCommandHandler>();
+builder.Services.AddMediatR(typeof(RegisterStudentCommand));
 
 var app = builder.Build();
 
