@@ -14,6 +14,14 @@ public abstract class BaseController : ControllerBase
 
     protected IActionResult Error(string fieldName, Error error)
     {
+        // Review
+        if (error.Code is Errors.General.InternalServerErrorCode)
+        {
+            return base.StatusCode(
+                StatusCodes.Status500InternalServerError, 
+                Envelope.Error(fieldName, error));
+        }
+
         if (error.Code is Errors.General.NotFoundCode)
         {
             return NotFound(Envelope.Error(fieldName, error));

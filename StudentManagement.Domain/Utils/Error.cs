@@ -47,6 +47,7 @@ public static class Errors
     public static class General
     {
         public const string NotFoundCode = "record.not.found";
+        public const string InternalServerErrorCode = "internal.server.error";
 
         public static Error ClientError() =>
             new Error("client.error", "Request is invalid");
@@ -72,12 +73,12 @@ public static class Errors
             : new Error("invalid.string.length", $"Invalid {name} length");
 
         public static Error InternalServerError() =>
-            new Error("internal.server.error", "Internal server error");
+            new Error(InternalServerErrorCode, "Internal server error");
 
         public static Error InternalServerError(string message, string? stackTrace) =>
             stackTrace is null
-            ? new Error("internal.server.error", $"{message}")
-            : new Error("internal.server.error", $"{message}: \\n {stackTrace}");
+            ? new Error(InternalServerErrorCode, $"{message}")
+            : new Error(InternalServerErrorCode, $"{message}: \\n {stackTrace}");
     }
 
     public static class Student

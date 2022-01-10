@@ -40,7 +40,7 @@ public sealed class StudentsController : ApplicationController
     [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] RegisterRequest dto) =>
         await FromCommand(nameof(Student), new RegisterStudentCommand(
-            dto.FirstName, dto.LastName, dto.Email, (long) dto.Enrollment.CourseId));
+            dto.FirstName, dto.LastName, dto.Email, dto.Enrollment.CourseId));
 
     // Unregister
     [HttpDelete("{id}")]
@@ -56,7 +56,7 @@ public sealed class StudentsController : ApplicationController
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> EditPersonalInfo(long id, EditPersonalInfoRequest dto) =>
+    public async Task<IActionResult> EditPersonalInfo(long id, EditPersonalInfoRequest dto) => 
         await FromCommand(nameof(Student), 
             new EditStudentPersonalInfoCommand(id, dto.FirstName, dto.LastName, dto.Email));
 

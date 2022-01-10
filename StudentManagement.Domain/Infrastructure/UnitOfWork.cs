@@ -24,7 +24,6 @@ namespace StudentManagement.Domain.Infrastructure
             try
             {
                 return _transaction.CommitAsync();
-
             }
             finally
             {
