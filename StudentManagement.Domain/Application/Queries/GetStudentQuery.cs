@@ -1,12 +1,15 @@
-﻿using StudentManagement.Domain.AggregatesModel.Students;
-using StudentManagement.Domain.Application.Dtos;
+﻿using Disenrollment = StudentManagement.Domain.Application.Queries.Responses.GetStudentQueryResponse.Disenrollment;
+using Enrollment = StudentManagement.Domain.Application.Queries.Responses.GetStudentQueryResponse.Enrollment;
+using Student = StudentManagement.Domain.Application.Queries.Responses.GetStudentQueryResponse;
+using StudentManagement.Domain.Infrastructure;
 using StudentManagement.Domain.Utils;
 using CSharpFunctionalExtensions;
 using MediatR;
+using Dapper;
 
 namespace StudentManagement.Domain.Application.Queries;
 
-public class GetStudentQuery : IRequest<Result<StudentDto, Error>>
+public class GetStudentQuery : IRequest<Result<Student, Error>>
 {
     public long StudentId { get; }
 
@@ -15,57 +18,51 @@ public class GetStudentQuery : IRequest<Result<StudentDto, Error>>
         StudentId = id;
     }
 
-    internal sealed class GetStudentQueryHandler 
-        : IRequestHandler<GetStudentQuery, Result<StudentDto, Error>>
+    internal sealed class GetStudentQueryHandler
+        : IRequestHandler<GetStudentQuery, Result<Student, Error>>
     {
-        private readonly IStudentRepository _studentRepository;
+        private readonly DbSession _dbSession;
 
-        public GetStudentQueryHandler(IStudentRepository studentRepository)
+        public GetStudentQueryHandler(DbSession dbSession)
         {
-            _studentRepository = studentRepository;
+            _dbSession = dbSession;
         }
 
-        public async Task<Result<StudentDto, Error>> Handle(GetStudentQuery request, 
+        public async Task<Result<Student, Error>> Handle(GetStudentQuery request,
             CancellationToken cancellationToken)
         {
-            Student? student = await _studentRepository.QueryByIdAsync(request.StudentId);
+            using var conn = _dbSession.Connection;
+
+            string query =
+                @"SELECT * FROM Student s
+                WHERE s.Id = @StudentId;
+
+                SELECT *, c.Name CourseName FROM Enrollment
+                INNER JOIN Course c ON c.Id = CourseId
+                WHERE StudentId = @StudentId;
+
+                SELECT *, c.Name CourseName FROM Disenrollment
+                INNER JOIN Course c ON c.Id = CourseId
+                WHERE StudentId = @StudentId;";
+
+            using var multi = await conn.QueryMultipleAsync(query, param: request);
+
+            Student student = await multi.ReadFirstOrDefaultAsync<Student>();
 
             if (student is null)
             {
                 return Errors.General.NotFound(request.StudentId);
             }
 
-            return ConvertToDto(student);
-        }
+            List<Enrollment> enrollments = (await multi.ReadAsync<Enrollment>()).ToList();
+            List<Disenrollment> disenrollments = (await multi.ReadAsync<Disenrollment>()).ToList();
 
-        private StudentDto ConvertToDto(Student student)
-        {
-            var firstEnrollment = student.FirstEnrollment is null
-                ? null
-                : new StudentDto.EnrollmentDto()
-                {
-                    CourseId = student.FirstEnrollment.Course.Id,
-                    CourseName = student.FirstEnrollment.Course.Name,
-                    Grade = student.FirstEnrollment.Grade?.ToString()
-                };
+            student.FirstEnrollment = enrollments.ElementAtOrDefault(0);
+            student.SecondEnrollment = enrollments.ElementAtOrDefault(1);
 
-            var secondEnrollment = student.SecondEnrollment is null
-                ? null
-                : new StudentDto.EnrollmentDto()
-                {
-                    CourseId = student.SecondEnrollment.Course.Id,
-                    CourseName = student.SecondEnrollment.Course.Name,
-                    Grade = student.SecondEnrollment.Grade?.ToString()
-                };
+            student.Disenrollments = disenrollments;
 
-            return new StudentDto
-            {
-                Id = student.Id,
-                Name = student.Name.ToString(),
-                Email = student.Email.ToString(),
-                FirstEnrollment = firstEnrollment,
-                SecondEnrollment = secondEnrollment
-            };
+            return student;
         }
     }
 }

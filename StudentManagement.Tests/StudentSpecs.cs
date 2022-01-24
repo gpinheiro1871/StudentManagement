@@ -3,6 +3,7 @@ using FluentAssertions;
 using System;
 using StudentManagement.Domain.AggregatesModel.Students;
 using StudentManagement.Domain.AggregatesModel.Courses;
+using System.Linq;
 
 namespace StudentManagement.Tests;
 
@@ -107,8 +108,8 @@ public class StudentSpecs
         student.Transfer(1, course, grade);
 
         //ASSERT
-        student.FirstEnrollment.Should().NotBeNull();
-        student.FirstEnrollment?.Course.Should().Be(course);
-        student.FirstEnrollment?.Grade.Should().Be(grade);
+        student.Enrollments.ElementAtOrDefault(0).Should().NotBeNull();
+        student.Enrollments.ElementAtOrDefault(0)?.Course.Should().Be(course);
+        student.Enrollments.ElementAtOrDefault(0)?.Grade.Should().Be(grade);
     }
 }

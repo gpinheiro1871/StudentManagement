@@ -1,11 +1,11 @@
 ﻿using StudentManagement.Domain.AggregatesModel.Students;
 using StudentManagement.Domain.Application.Commands;
 using StudentManagement.Domain.Application.Queries;
-using StudentManagement.Domain.Application.Dtos;
 using StudentManagement.Api.DataContracts;
 using StudentManagement.Api.Utils;
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
+using StudentManagement.Domain.Application.Queries.Responses;
 
 namespace StudentManagement.Api.Controllers;
 
@@ -22,12 +22,12 @@ public sealed class StudentsController : ApplicationController
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(Envelope<List<StudentDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope<GetStudentListResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll() =>
         await FromQuery(new GetStudentListQuery());
 
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(Envelope<StudentDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope<GetStudentQueryResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Get(long id) =>
         await FromQuery(nameof(Student),

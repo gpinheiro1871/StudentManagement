@@ -1,60 +1,56 @@
-﻿using StudentManagement.Domain.AggregatesModel.Students;
-using StudentManagement.Domain.Application.Dtos;
-using CSharpFunctionalExtensions;
+﻿using Enrollment = StudentManagement.Domain.Application.Queries.Responses.GetStudentListResponse.Enrollment;
+using Student = StudentManagement.Domain.Application.Queries.Responses.GetStudentListResponse.Student;
+using StudentManagement.Domain.Application.Queries.Responses;
+using StudentManagement.Domain.Infrastructure;
 using MediatR;
+using Dapper;
 
 namespace StudentManagement.Domain.Application.Queries;
 
-public class GetStudentListQuery : IRequest<List<StudentDto>>
+public class GetStudentListQuery : IRequest<GetStudentListResponse>
 {
-    internal sealed class GetStudentListQueryHandler 
-        : IRequestHandler<GetStudentListQuery, List<StudentDto>>
+    internal sealed class GetStudentListQueryHandler
+        : IRequestHandler<GetStudentListQuery, GetStudentListResponse>
     {
-        private readonly IStudentRepository _studentRepository;
+        private readonly DbSession _dbSession;
 
-        public GetStudentListQueryHandler(IStudentRepository studentRepository)
+        public GetStudentListQueryHandler(DbSession dbSession)
         {
-            _studentRepository = studentRepository;
+            _dbSession = dbSession;
         }
 
-        public async Task<List<StudentDto>> Handle(GetStudentListQuery request, 
+        public async Task<GetStudentListResponse> Handle(GetStudentListQuery request,
             CancellationToken cancellationToken)
         {
-            IReadOnlyCollection<Student> students = await _studentRepository.QueryAllAsync();
+            using var conn = _dbSession.Connection;
 
-            List<StudentDto> dtos = students.Select(x => ConvertToDto(x)).ToList();
+            var studentDictionary = new Dictionary<long, Student>();
 
-            return dtos;
-        }
-
-        private StudentDto ConvertToDto(Student student)
-        {
-            var firstEnrollment = student.FirstEnrollment is null
-                ? null
-                : new StudentDto.EnrollmentDto()
+            var students = (await conn.QueryAsync<Student, Enrollment, Student>(
+                @"SELECT s.Id, (s.FirstName || ' ' || s.LastName) Name,
+                s.Email, e.Grade, c.Id CourseId, c.Name CourseName FROM Student s
+                INNER JOIN Enrollment e ON e.StudentId = s.Id
+                INNER JOIN Course c ON c.Id = e.CourseId
+                ORDER BY s.Id",
+                (student, enrollment) =>
                 {
-                    CourseId = student.FirstEnrollment.Course.Id,
-                    CourseName = student.FirstEnrollment.Course.Name,
-                    Grade = student.FirstEnrollment.Grade?.ToString()
-                };
+                    if (!studentDictionary.TryGetValue(student.Id, out Student? studentEntry))
+                    {
+                        studentEntry = student;
+                        studentEntry.Enrollments = new List<Enrollment>();
 
-            var secondEnrollment = student.SecondEnrollment is null
-                ? null
-                : new StudentDto.EnrollmentDto()
-                {
-                    CourseId = student.SecondEnrollment.Course.Id,
-                    CourseName = student.SecondEnrollment.Course.Name,
-                    Grade = student.SecondEnrollment.Grade?.ToString()
-                };
+                        studentDictionary.Add(studentEntry.Id, studentEntry);
+                    }
 
-            return new StudentDto
-            {
-                Id = student.Id,
-                Name = student.Name.ToString(),
-                Email = student.Email.ToString(),
-                FirstEnrollment = firstEnrollment,
-                SecondEnrollment = secondEnrollment
-            };
+                    studentEntry?.Enrollments?.Add(enrollment);
+
+                    return student;
+                },
+                splitOn: "Grade"))
+                .DistinctBy(x => x.Id)
+                .ToList();
+
+            return new GetStudentListResponse() { Students = students };
         }
     }
 }

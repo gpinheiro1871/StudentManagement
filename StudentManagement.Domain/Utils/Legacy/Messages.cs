@@ -1,6 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 
-namespace StudentManagement.Domain.Utils;
+namespace StudentManagement.Domain.Utils.Legacy;
 
 public sealed class Messages
 {
@@ -44,7 +44,7 @@ public sealed class Messages
         }
 
         Result<T, Error> result = await handler.HandleAsync((dynamic)query);
-        
+
         return result;
     }
 }

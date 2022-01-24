@@ -2,7 +2,6 @@
 using StudentManagement.Domain.Infrastructure;
 using StudentManagement.Domain.Infrastructure.Repositories;
 using StudentManagement.Domain.Utils;
-using System.Reflection;
 using System.Text;
 
 namespace StudentManagement.Api.Utils;
@@ -19,8 +18,11 @@ public static class Dependencies
         return services;
     }
 
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, 
+        ConfigurationManager configuration)
     {
+        services.AddScoped(x => new DbSession(configuration.GetConnectionString("SchoolDb")));
+
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<IStudentRepository, StudentRepository>();

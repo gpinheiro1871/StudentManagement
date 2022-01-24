@@ -1,6 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 
-namespace StudentManagement.Domain.Utils;
+namespace StudentManagement.Domain.Utils.Legacy;
 
 public interface ICommandHandler<TCommand> where TCommand : ICommand
 {

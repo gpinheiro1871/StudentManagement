@@ -12,7 +12,7 @@ builder.Services.AddControllers()
     .AddNewtonsoftJson(options =>
     {
         options.SerializerSettings.Converters.Add(new NullableStringEnumConverter());
-        options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+        options.SerializerSettings.NullValueHandling = NullValueHandling.Include;
         options.SerializerSettings.DefaultValueHandling = DefaultValueHandling.Populate;
     })
     .ConfigureApiBehaviorOptions(options =>
@@ -35,7 +35,7 @@ builder.Services.AddSwaggerGenNewtonsoftSupport ();
 
 // Dependency Injection
 builder.Services.AddNHibernate(builder.Configuration.GetConnectionString("SchoolDb"));
-builder.Services.AddInfrastructure();
+builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddMediatR(typeof(RegisterStudentCommand));
 
 var app = builder.Build();

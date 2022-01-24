@@ -20,11 +20,6 @@ public class Student :
     private readonly IList<Enrollment> _enrollments = new List<Enrollment>();
     public virtual IReadOnlyList<Enrollment> Enrollments => _enrollments.ToList();
 
-    public virtual Enrollment? FirstEnrollment => 
-        _enrollments.ElementAtOrDefault(0);
-    public virtual Enrollment? SecondEnrollment => 
-        _enrollments.ElementAtOrDefault(1);
-
     private readonly IList<Disenrollment> _disenrollments = new List<Disenrollment>();
     public virtual IReadOnlyList<Disenrollment> Disenrollments => _disenrollments.ToList();
 
