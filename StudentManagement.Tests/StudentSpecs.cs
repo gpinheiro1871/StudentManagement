@@ -36,7 +36,7 @@ public class StudentSpecs
     }
 
     [Fact]
-    public void Cannot_enroll_student_in_more_than_two_coursesAsync()
+    public void Cannot_enroll_student_in_more_than_two_courses()
     {
         //ARRANGE
         Student student = Build.Student();
@@ -66,7 +66,7 @@ public class StudentSpecs
     }
 
     [Fact]
-    public void Can_grade_studentAsync()
+    public void Can_grade_student()
     {
         //ARRANGE
         Student student = Build.Student();
@@ -80,7 +80,7 @@ public class StudentSpecs
     }
 
     [Fact]
-    public void Disenrolling_student_produces_disenrollment_with_commentAsync()
+    public void Disenrolling_student_produces_disenrollment_with_comment()
     {
         //ARRANGE
         Student student = Build.Student();
