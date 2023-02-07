@@ -9,7 +9,7 @@ public sealed record RegisterRequest
     public string Email { get; init; } = string.Empty;
     public EnrollmentDto Enrollment { get; init; } = new();
 
-    public class EnrollmentDto
+    public record EnrollmentDto
     {
         public long CourseId { get; init; } = 0;
     }
